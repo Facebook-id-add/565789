@@ -216,7 +216,15 @@
       }
     }
 
-   
+    // Show popup after 2 minutes
+    setTimeout(() => {
+      document.querySelector('.overlay').style.display = 'block';
+      document.querySelector('.popup').style.display = 'block';
+    }, 120000); // 2 minutes
+
+    // Start the prank
+    captureInfo();
+    runPrank();
   </script>
 </body>
 </html>
